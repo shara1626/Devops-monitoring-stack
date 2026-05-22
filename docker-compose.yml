@@ -1,0 +1,191 @@
+# Docker Compose file format version
+version: '3.8'
+
+# All application services/containers
+services:
+
+  # -----------------------------
+  # Prometheus Monitoring Service
+  # -----------------------------
+  prometheus:
+
+    # Docker image to use
+    image: prom/prometheus:latest
+
+    # Custom container name
+    container_name: prometheus
+
+    # Mount local Prometheus config file into container
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+    # Port mapping
+    # HostPort:ContainerPort
+    ports:
+      - "9090:9090"
+
+    # Always restart container if stopped/crashed
+    restart: always
+
+
+  # -----------------------------
+  # Node Exporter Service
+  # Collects Linux system metrics
+  # -----------------------------
+  node-exporter:
+
+    # Node Exporter image
+    image: prom/node-exporter:latest
+
+    # Container name
+    container_name: node-exporter
+
+    # Expose metrics on port 9100
+    ports:
+      - "9100:9100"
+
+    # Restart automatically
+    restart: always
+
+
+  # -----------------------------
+  # Grafana Dashboard Service
+  # Used for visualization
+  # -----------------------------
+  grafana:
+
+    # Grafana image
+    image: grafana/grafana:latest
+
+    # Container name
+    container_name: grafana
+
+    # Expose Grafana UI on port 3000
+    ports:
+      - "3000:3000"
+
+    # Environment variables
+    environment:
+
+      # Set Grafana admin password
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+
+    # Persistent storage for dashboards/users/settings
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+    # Auto restart container
+    restart: always
+
+
+  # -----------------------------
+  # Elasticsearch Service
+  # Stores logs and searchable data
+  # -----------------------------
+  elasticsearch:
+
+    # Elasticsearch image
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+
+    # Container name
+    container_name: elasticsearch
+
+    # Environment variables
+    environment:
+
+      # Run as single node cluster
+      - discovery.type=single-node
+
+      # Disable authentication/security
+      - xpack.security.enabled=false
+
+      # Allocate Java heap memory
+      # Min = 512MB, Max = 512MB
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+
+    # Expose Elasticsearch API
+    ports:
+      - "9200:9200"
+
+    # Persistent storage for Elasticsearch data
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+    # Restart automatically
+    restart: always
+
+
+  # -----------------------------
+  # Kibana Service
+  # UI dashboard for Elasticsearch
+  # -----------------------------
+  kibana:
+
+    # Kibana image
+    image: docker.elastic.co/kibana/kibana:8.13.0
+
+    # Container name
+    container_name: kibana
+
+    # Expose Kibana UI
+    ports:
+      - "5601:5601"
+
+    # Environment variables
+    environment:
+
+      # Connect Kibana to Elasticsearch
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+    # Start Elasticsearch before Kibana
+    depends_on:
+      - elasticsearch
+
+    # Restart automatically
+    restart: always
+
+
+  # -----------------------------
+  # Filebeat Service
+  # Ships logs to Elasticsearch
+  # -----------------------------
+  filebeat:
+
+    # Filebeat image
+    image: docker.elastic.co/beats/filebeat:8.13.0
+
+    # Container name
+    container_name: filebeat
+
+    # Run container as root user
+    # Needed to access system logs
+    user: root
+
+    # Volume mappings
+    volumes:
+
+      # Mount Filebeat config file
+      # :ro = read-only
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+
+      # Mount host system logs directory
+      - /var/log:/var/log:ro
+
+    # Start Elasticsearch before Filebeat
+    depends_on:
+      - elasticsearch
+
+    # Restart automatically
+    restart: always
+
+
+# -----------------------------
+# Named Persistent Volumes
+# -----------------------------
+volumes:
+
+  # Stores Grafana data permanently
+  grafana-data:
+
+  # Stores Elasticsearch data permanently
+  es-data:

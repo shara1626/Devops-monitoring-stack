@@ -1,0 +1,30 @@
+
+# Global configuration section
+global:
+
+  # Prometheus collects metrics every 15 seconds
+  scrape_interval: 15s
+
+
+# List of monitoring jobs
+scrape_configs:
+
+  # First monitoring job
+  - job_name: 'prometheus'
+
+    # Static target configuration
+    static_configs:
+
+      # Prometheus monitors itself on port 9090
+      - targets: ['localhost:9090']
+
+
+  # Second monitoring job
+  - job_name: 'node-exporter'
+
+    static_configs:
+
+      # Collect system metrics from node-exporter container
+      # Port 9100 is default node-exporter metrics port
+      - targets: ['node-exporter:9100']
+

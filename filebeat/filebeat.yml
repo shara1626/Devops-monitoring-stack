@@ -1,0 +1,34 @@
+# Configure Filebeat inputs
+# Inputs define where logs are collected from
+filebeat.inputs:
+
+  # Define one log input source
+  - type: log
+
+    # Enable this input
+    enabled: true
+
+    # Paths of log files to monitor
+    paths:
+
+      # Read all .log files inside /var/log directory
+      - /var/log/*.log
+
+
+# ---------------------------------
+# Output Configuration
+# Send logs to Elasticsearch
+# ---------------------------------
+output.elasticsearch:
+
+  # Elasticsearch service endpoint
+  hosts: ["elasticsearch:9200"]
+
+
+# ---------------------------------
+# Kibana Setup Configuration
+# ---------------------------------
+setup.kibana:
+
+  # Kibana service address
+  host: "kibana:5601"

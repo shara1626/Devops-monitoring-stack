@@ -1,0 +1,4 @@
+*.log
+.env
+es-data/
+grafana-data/
