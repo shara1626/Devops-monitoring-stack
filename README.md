@@ -123,3 +123,76 @@ docker-compose restart grafana
 - Collecting system metrics with Prometheus & Node Exporter
 - Shipping and indexing logs with ELK stack
 - Building dashboards in Grafana and Kibana
+---
+
+# 🔄 Recovery & Redeployment
+
+## (Before Terminating EC2)
+
+```bash
+cd ~/monitoring-stack
+
+# Check what's not yet committed
+git status
+
+# Add everything
+git add .
+
+# Commit changes
+git commit -m "feat: add full monitoring stack configs"
+
+# Push to GitHub
+git push
+```
+
+### Ensure These Files Exist in Your Repository
+
+```text
+monitoring-stack/
+├── docker-compose.yml
+├── prometheus/
+│   └── prometheus.yml
+├── filebeat/
+│   └── filebeat.yml
+├── screenshots/
+└── README.md
+```
+
+---
+
+# 🚀 Redeploy on a New EC2 Instance
+
+## 1. Install Docker
+
+```bash
+sudo yum install -y docker
+sudo systemctl start docker
+sudo usermod -aG docker ec2-user
+newgrp docker
+```
+
+## 2. Install Docker Compose
+
+```bash
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+-o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+## 3. Clone the Repository
+
+```bash
+git clone git@github.com:YOUR_USERNAME/devops-monitoring-stack.git
+cd devops-monitoring-stack
+```
+
+## 4. Start the Monitoring Stack
+
+```bash
+docker-compose up -d
+```
+
+---
+
+✅ Full monitoring stack restored and running within minutes.
